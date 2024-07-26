@@ -68,7 +68,8 @@ ComponentArray{T}(;kwargs...) where T = ComponentArray{T}((;kwargs...))
 ComponentArray(;kwargs...) = ComponentArray((;kwargs...))
 
 ComponentArray(x::ComponentArray) = x
-ComponentArray{T}(x::ComponentArray) where {T} = T.(x)
+# ComponentArray{T}(x::ComponentArray) where {T} = T.(x)
+ComponentArray{T}(x::ComponentArray) where {T} = ComponentArray(T.(getdata(x)), getaxes(x))
 (CA::Type{<:ComponentArray{T,N,A,Ax}})(x::ComponentArray) where {T,N,A,Ax} = ComponentArray(T.(getdata(x)), getaxes(x))
 
 
@@ -96,7 +97,7 @@ function ComponentArray(x::ComponentVector; kwargs...)
 end
 ComponentVector(x::ComponentVector; kwargs...) = ComponentArray(x; kwargs...)
 
-ComponentVector{T}(x::ComponentVector) where {T} = T.(x)
+# ComponentVector{T}(x::ComponentVector) where {T} = T.(x)
 
 
 """
@@ -111,7 +112,7 @@ ComponentMatrix(data::AbstractMatrix, ax...) = ComponentArray(data, ax...)
 ComponentMatrix(data::AbstractArray, ax...) = throw(DimensionMismatch("A `ComponentMatrix` must be initialized with a 2-dimensional array. This array is $(ndims(data))-dimensional."))
 
 ComponentMatrix(x::ComponentMatrix) = x
-ComponentMatrix{T}(x::ComponentMatrix) where {T} = T.(x)
+# ComponentMatrix{T}(x::ComponentMatrix) where {T} = T.(x)
 
 ComponentMatrix() = ComponentMatrix(Array{Any}(undef, 0, 0), (FlatAxis(), FlatAxis()))
 ComponentMatrix{T}() where {T} = ComponentMatrix(Array{T}(undef, 0, 0), (FlatAxis(), FlatAxis()))
@@ -121,16 +122,16 @@ const CVector = ComponentVector
 const CMatrix = ComponentMatrix
 
 const AdjOrTrans{T, A} = Union{Adjoint{T, A}, Transpose{T, A}}
-const AdjOrTransComponentArray{T, A} = Union{Adjoint{T, A}, Transpose{T, A}} where A<:ComponentArray
-const AdjOrTransComponentVector{T} = Union{Adjoint{T, A}, Transpose{T, A}} where A<:ComponentVector
-const AdjOrTransComponentMatrix{T} = Union{Adjoint{T, A}, Transpose{T, A}} where A<:ComponentMatrix
+# const AdjOrTransComponentArray{T, A} = Union{Adjoint{T, A}, Transpose{T, A}} where A<:ComponentArray
+# const AdjOrTransComponentVector{T} = Union{Adjoint{T, A}, Transpose{T, A}} where A<:ComponentVector
+# const AdjOrTransComponentMatrix{T} = Union{Adjoint{T, A}, Transpose{T, A}} where A<:ComponentMatrix
 
 const ComponentVecOrMat{T} = Union{ComponentVector{T}, ComponentMatrix{T}} where{T}
-const AdjOrTransComponentVecOrMat{T} = AdjOrTrans{T, <:ComponentVecOrMat} where {T}
-const AbstractComponentArray{T} = Union{ComponentArray{T}, AdjOrTransComponentArray{T}} where{T}
-const AbstractComponentVecOrMat{T} = Union{ComponentVecOrMat{T}, AdjOrTransComponentVecOrMat{T}} where{T}
-const AbstractComponentVector{T} = Union{ComponentVector{T}, AdjOrTransComponentVector{T}} where{T}
-const AbstractComponentMatrix{T} = Union{ComponentMatrix{T}, AdjOrTransComponentMatrix{T}} where{T}
+# const AdjOrTransComponentVecOrMat{T} = AdjOrTrans{T, <:ComponentVecOrMat} where {T}
+# const AbstractComponentArray{T} = Union{ComponentArray{T}, AdjOrTransComponentArray{T}} where{T}
+# const AbstractComponentVecOrMat{T} = Union{ComponentVecOrMat{T}, AdjOrTransComponentVecOrMat{T}} where{T}
+# const AbstractComponentVector{T} = Union{ComponentVector{T}, AdjOrTransComponentVector{T}} where{T}
+# const AbstractComponentMatrix{T} = Union{ComponentMatrix{T}, AdjOrTransComponentMatrix{T}} where{T}
 
 
 ## Constructor helpers
@@ -229,7 +230,10 @@ function _add_field(x, pair)
     return ComponentArray(new_data, new_ax)
 end
 function _update_field(x, pair)
-    x_copy = copy(x)
+    # copy doesn't return a component array, so need to do that explicitly I bet.
+    # x_copy = copy(x)
+    x_copy = ComponentArray(copy(getdata(x)), getaxes(x))
+    # @show x typeof(x) x_copy typeof(x_copy)
     x_copy[pair.first] = pair.second
     return x_copy
 end
@@ -266,8 +270,8 @@ Access ```.data``` field of a ```ComponentArray```, which contains the array tha
 """
 @inline getdata(x::ComponentArray) = getfield(x, :data)
 @inline getdata(x) = x
-@inline getdata(x::Adjoint) = getdata(x.parent)'
-@inline getdata(x::Transpose) = transpose(getdata(x.parent))
+# @inline getdata(x::Adjoint) = getdata(x.parent)'
+# @inline getdata(x::Transpose) = transpose(getdata(x.parent))
 
 """
     getaxes(x::ComponentArray)
@@ -299,12 +303,12 @@ julia> getaxes(ca)
 ```
 """
 @inline getaxes(x::ComponentArray) = getfield(x, :axes)
-@inline getaxes(x::AdjOrTrans{T, <:ComponentVector}) where T = (FlatAxis(), getaxes(x.parent)[1])
-@inline getaxes(x::AdjOrTrans{T, <:ComponentMatrix}) where T = reverse(getaxes(x.parent))
+# @inline getaxes(x::AdjOrTrans{T, <:ComponentVector}) where T = (FlatAxis(), getaxes(x.parent)[1])
+# @inline getaxes(x::AdjOrTrans{T, <:ComponentMatrix}) where T = reverse(getaxes(x.parent))
 
 @inline getaxes(::Type{<:ComponentArray{T,N,A,Axes}}) where {T,N,A,Axes} = map(x->x(), (Axes.types...,))
-@inline getaxes(::Type{<:AdjOrTrans{T,CA}}) where {T,CA<:ComponentVector} = (FlatAxis(), getaxes(CA)[1]) |> typeof
-@inline getaxes(::Type{<:AdjOrTrans{T,CA}}) where {T,CA<:ComponentMatrix} = reverse(getaxes(CA)) |> typeof
+# @inline getaxes(::Type{<:AdjOrTrans{T,CA}}) where {T,CA<:ComponentVector} = (FlatAxis(), getaxes(CA)[1]) |> typeof
+# @inline getaxes(::Type{<:AdjOrTrans{T,CA}}) where {T,CA<:ComponentMatrix} = reverse(getaxes(CA)) |> typeof
 
 ## Field access through these functions to reserve dot-getting for keys
 @inline getaxes(x::VarAxes) = getaxes(typeof(x))

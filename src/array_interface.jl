@@ -14,70 +14,76 @@ ArrayInterface.indices_do_not_alias(::Type{ComponentArray{T,N,A,Axes}}) where {T
 ArrayInterface.instances_do_not_alias(::Type{ComponentArray{T,N,A,Axes}}) where {T,N,A,Axes} = ArrayInterface.instances_do_not_alias(A)
 
 # Cats
-# TODO: Make this a little less copy-pastey
-function Base.hcat(x::AbstractComponentVecOrMat, y::AbstractComponentVecOrMat)
-    ax_x, ax_y = second_axis.((x,y))
-    if reduce((accum, key) -> accum || (key in keys(ax_x)), keys(ax_y); init=false) || getaxes(x)[1] != getaxes(y)[1]
-        return hcat(getdata(x), getdata(y))
-    else
-        data_x, data_y = getdata.((x, y))
-        ax_y = reindex(ax_y, size(x,2))
-        idxmap_x, idxmap_y = indexmap.((ax_x, ax_y))
-        axs = getaxes(x)
-        return ComponentArray(hcat(data_x, data_y), axs[1], Axis((;idxmap_x..., idxmap_y...)), axs[3:end]...)
-    end
-end
+# # TODO: Make this a little less copy-pastey
+# function Base.hcat(x::AbstractComponentVecOrMat, y::AbstractComponentVecOrMat)
+#     ax_x, ax_y = second_axis.((x,y))
+#     if reduce((accum, key) -> accum || (key in keys(ax_x)), keys(ax_y); init=false) || getaxes(x)[1] != getaxes(y)[1]
+#         return hcat(getdata(x), getdata(y))
+#     else
+#         data_x, data_y = getdata.((x, y))
+#         ax_y = reindex(ax_y, size(x,2))
+#         idxmap_x, idxmap_y = indexmap.((ax_x, ax_y))
+#         axs = getaxes(x)
+#         return ComponentArray(hcat(data_x, data_y), axs[1], Axis((;idxmap_x..., idxmap_y...)), axs[3:end]...)
+#     end
+# end
+# Base.hcat(x::AbstractComponentVecOrMat, y::AbstractComponentVecOrMat) = hcat(getdata(x), getdata(y))
+Base.hcat(x::ComponentVecOrMat, y::ComponentVecOrMat) = hcat(getdata(x), getdata(y))
 
-second_axis(ca::AbstractComponentVecOrMat) = getaxes(ca)[2]
-second_axis(::ComponentVector) = FlatAxis()
+# second_axis(ca::AbstractComponentVecOrMat) = getaxes(ca)[2]
+# second_axis(::ComponentVector) = FlatAxis()
 
 # Are all these methods necessary?
 # TODO: See what we can reduce down to without getting ambiguity errors
 Base.vcat(x::ComponentVector{<:Number}, y::AbstractVector{<:Number}) = vcat(getdata(x), y)
 Base.vcat(x::AbstractVector{<:Number}, y::ComponentVector{<:Number}) = vcat(x, getdata(y))
-function Base.vcat(x::ComponentVector{<:Number}, y::ComponentVector{<:Number})
-    if reduce((accum, key) -> accum || (key in keys(x)), keys(y); init=false)
-        return vcat(getdata(x), getdata(y))
-    else
-        data_x, data_y = getdata.((x, y))
-        ax_x, ax_y = getindex.(getaxes.((x, y)), 1)
-        ax_y = reindex(ax_y, length(x))
-        idxmap_x, idxmap_y = indexmap.((ax_x, ax_y))
-        return ComponentArray(vcat(data_x, data_y), Axis((;idxmap_x..., idxmap_y...)))
-    end
-end
-function Base.vcat(x::AbstractComponentVecOrMat{<:Number}, y::AbstractComponentVecOrMat{<:Number})
-    ax_x, ax_y = getindex.(getaxes.((x, y)), 1)
-    if reduce((accum, key) -> accum || (key in keys(ax_x)), keys(ax_y); init=false) || getaxes(x)[2:end] != getaxes(y)[2:end]
-        return vcat(getdata(x), getdata(y))
-    else
-        data_x, data_y = getdata.((x, y))
-        ax_y = reindex(ax_y, size(x,1))
-        idxmap_x, idxmap_y = indexmap.((ax_x, ax_y))
-        return ComponentArray(vcat(data_x, data_y), Axis((;idxmap_x..., idxmap_y...)), getaxes(x)[2:end]...)
-    end
-end
-Base.vcat(x::CV...) where {CV<:AdjOrTransComponentArray{<:Number}} = ComponentArray(reduce(vcat, map(y->getdata(y.parent)', x)), getaxes(x[1]))
+# function Base.vcat(x::ComponentVector{<:Number}, y::ComponentVector{<:Number})
+#     if reduce((accum, key) -> accum || (key in keys(x)), keys(y); init=false)
+#         return vcat(getdata(x), getdata(y))
+#     else
+#         data_x, data_y = getdata.((x, y))
+#         ax_x, ax_y = getindex.(getaxes.((x, y)), 1)
+#         ax_y = reindex(ax_y, length(x))
+#         idxmap_x, idxmap_y = indexmap.((ax_x, ax_y))
+#         return ComponentArray(vcat(data_x, data_y), Axis((;idxmap_x..., idxmap_y...)))
+#     end
+# end
+Base.vcat(x::ComponentVector{<:Number}, y::ComponentVector{<:Number}) = vcat(getdata(x), getdata(y))
+# function Base.vcat(x::AbstractComponentVecOrMat{<:Number}, y::AbstractComponentVecOrMat{<:Number})
+#     ax_x, ax_y = getindex.(getaxes.((x, y)), 1)
+#     if reduce((accum, key) -> accum || (key in keys(ax_x)), keys(ax_y); init=false) || getaxes(x)[2:end] != getaxes(y)[2:end]
+#         return vcat(getdata(x), getdata(y))
+#     else
+#         data_x, data_y = getdata.((x, y))
+#         ax_y = reindex(ax_y, size(x,1))
+#         idxmap_x, idxmap_y = indexmap.((ax_x, ax_y))
+#         return ComponentArray(vcat(data_x, data_y), Axis((;idxmap_x..., idxmap_y...)), getaxes(x)[2:end]...)
+#     end
+# end
+Base.vcat(x::ComponentVecOrMat{<:Number}, y::ComponentVecOrMat{<:Number}) = vcat(getdata(x), getdata(y))
+# Base.vcat(x::CV...) where {CV<:AdjOrTransComponentArray{<:Number}} = ComponentArray(reduce(vcat, map(y->getdata(y.parent)', x)), getaxes(x[1]))
 Base.vcat(x::ComponentVector{<:Number}, args...) = vcat(getdata(x), getdata.(args)...)
 Base.vcat(x::ComponentVector{<:Number}, args::Vararg{Union{Number, UniformScaling, AbstractVecOrMat{<:Number}}}) = vcat(getdata(x), getdata.(args)...)
 Base.vcat(x::ComponentVector{<:Number}, args::Vararg{AbstractVector{T}, N}) where {T<:Number,N} = vcat(getdata(x), getdata.(args)...)
 
-function Base.hvcat(row_lengths::NTuple{N,Int}, xs::Vararg{AbstractComponentVecOrMat}) where {N}
-    i = 1
-    idxs = UnitRange{Int}[]
-    for row_length in row_lengths
-        i_last = i + row_length - 1
-        push!(idxs, i:i_last)
-        i = i_last + 1
-    end
-    rows = [reduce(hcat, xs[idx]) for idx in idxs]
-    return vcat(rows...)
-end
+# function Base.hvcat(row_lengths::NTuple{N,Int}, xs::Vararg{AbstractComponentVecOrMat}) where {N}
+#     i = 1
+#     idxs = UnitRange{Int}[]
+#     for row_length in row_lengths
+#         i_last = i + row_length - 1
+#         push!(idxs, i:i_last)
+#         i = i_last + 1
+#     end
+#     rows = [reduce(hcat, xs[idx]) for idx in idxs]
+#     return vcat(rows...)
+# end
+Base.hvcat(row_lengths::NTuple{N,Int}, xs::Vararg{ComponentVecOrMat}) where {N} = hvcat(row_lengths, getdata.(xs))
 
-function Base.permutedims(x::ComponentArray, dims)
-    axs = getaxes(x)
-    return ComponentArray(permutedims(getdata(x), dims), map(i->axs[i], dims)...)
-end
+# function Base.permutedims(x::ComponentArray, dims)
+#     axs = getaxes(x)
+#     return ComponentArray(permutedims(getdata(x), dims), map(i->axs[i], dims)...)
+# end
+Base.permutedims(x::ComponentArray, dims) = permutedims(getdata(x), dims)
 
 ## Indexing
 Base.IndexStyle(::Type{<:ComponentArray{T,N,<:A,<:Axes}}) where {T,N,A,Axes} = IndexStyle(A)
@@ -92,11 +98,12 @@ Base.to_index(x::ComponentArray, i) = i
 # Get ComponentArray index
 Base.@propagate_inbounds Base.getindex(x::ComponentArray, idx::CartesianIndex) = getdata(x)[idx]
 Base.@propagate_inbounds Base.getindex(x::ComponentArray, idx::Vararg{FlatIdx}) = getdata(x)[idx...]
-Base.@propagate_inbounds function Base.getindex(x::ComponentArray, idx::Vararg{FlatOrColonIdx})
-    axs = map((ax, i) -> getindex(ax, i).ax, getaxes(x), idx)
-    axs = remove_nulls(axs...)
-    return ComponentArray(getdata(x)[idx...], axs...)
-end
+# Base.@propagate_inbounds function Base.getindex(x::ComponentArray, idx::Vararg{FlatOrColonIdx})
+#     axs = map((ax, i) -> getindex(ax, i).ax, getaxes(x), idx)
+#     axs = remove_nulls(axs...)
+#     return ComponentArray(getdata(x)[idx...], axs...)
+# end
+Base.@propagate_inbounds Base.getindex(x::ComponentArray, idx::Vararg{FlatOrColonIdx}) = getdata(x)[idx...]
 Base.@propagate_inbounds Base.getindex(x::ComponentArray, ::Colon) = getdata(x)[:]
 Base.@propagate_inbounds Base.getindex(x::ComponentArray, ::Colon, ::Vararg{Colon}) = x
 @inline Base.getindex(x::ComponentArray, idx...) = getindex(x, toval.(idx)...)

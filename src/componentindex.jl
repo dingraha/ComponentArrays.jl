@@ -14,36 +14,36 @@ const NullComponentIndex{Idx} = ComponentIndex{Idx, NullAxis}
 Base.:(==)(ci1::ComponentIndex, ci2::ComponentIndex) = ci1.idx == ci2.idx && ci1.ax == ci2.ax
 
 
-"""
-    KeepIndex(idx)
+# """
+#     KeepIndex(idx)
 
-Tag an index of a `ComponentArray` to retain it's `Axis` through indexing
-"""
-struct KeepIndex{Idx} end
-KeepIndex(idx) = KeepIndex{idx}()
-KeepIndex(idx::Integer) = KeepIndex(idx:idx)
+# Tag an index of a `ComponentArray` to retain it's `Axis` through indexing
+# """
+# struct KeepIndex{Idx} end
+# KeepIndex(idx) = KeepIndex{idx}()
+# KeepIndex(idx::Integer) = KeepIndex(idx:idx)
 
-Base.getindex(ax::AbstractAxis, i::KeepIndex{Idx}) where {Idx} = _getindex_keep(ax, Idx)
+# Base.getindex(ax::AbstractAxis, i::KeepIndex{Idx}) where {Idx} = _getindex_keep(ax, Idx)
 
-_getindex_keep(ax::AbstractAxis, ::Colon) = ComponentIndex(:, ax)
-function _getindex_keep(ax::AbstractAxis, idx::AbstractRange)
-    idx_map = indexmap(ax)
-    keeps = (s=>x for (s,x) in pairs(idx_map) if first(viewindex(x)) in idx && last(viewindex(x)) in idx)
-    keeps = NamedTuple{Tuple(first.(keeps))}(Tuple(last.(keeps)))
-    new_ax = reindex(Axis(keeps), -first(idx)+1)
-    return ComponentIndex(idx, new_ax)
-end
-function _getindex_keep(ax::AbstractAxis, sym::Symbol)
-    ci = ax[sym]
-    idx = ci.idx
-    if idx isa Integer
-        idx = idx:idx
-    end
-    if ci.ax isa NullAxis || ci.ax isa FlatAxis
-        new_ax = Axis(NamedTuple{(sym,)}((ci.idx,)))
-    else
-        new_ax = Axis(NamedTuple{(sym,)}((ViewAxis(idx, ci.ax),)))
-    end
-    new_ax = reindex(new_ax, -first(idx)+1)
-    return ComponentIndex(idx, new_ax)
-end
+# _getindex_keep(ax::AbstractAxis, ::Colon) = ComponentIndex(:, ax)
+# function _getindex_keep(ax::AbstractAxis, idx::AbstractRange)
+#     idx_map = indexmap(ax)
+#     keeps = (s=>x for (s,x) in pairs(idx_map) if first(viewindex(x)) in idx && last(viewindex(x)) in idx)
+#     keeps = NamedTuple{Tuple(first.(keeps))}(Tuple(last.(keeps)))
+#     new_ax = reindex(Axis(keeps), -first(idx)+1)
+#     return ComponentIndex(idx, new_ax)
+# end
+# function _getindex_keep(ax::AbstractAxis, sym::Symbol)
+#     ci = ax[sym]
+#     idx = ci.idx
+#     if idx isa Integer
+#         idx = idx:idx
+#     end
+#     if ci.ax isa NullAxis || ci.ax isa FlatAxis
+#         new_ax = Axis(NamedTuple{(sym,)}((ci.idx,)))
+#     else
+#         new_ax = Axis(NamedTuple{(sym,)}((ViewAxis(idx, ci.ax),)))
+#     end
+#     new_ax = reindex(new_ax, -first(idx)+1)
+#     return ComponentIndex(idx, new_ax)
+# end

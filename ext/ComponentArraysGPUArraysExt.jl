@@ -29,11 +29,13 @@ LinearAlgebra.rmul!(ca::GPUComponentArray, b::Number) = GPUArrays.generic_rmul!(
 
 function Base.map(f, x::GPUComponentArray, args...)
     data = map(f, getdata(x), getdata.(args)...)
-    return ComponentArray(data, getaxes(x))
+    # return ComponentArray(data, getaxes(x))
+    return data
 end
 function Base.map(f, x::GPUComponentArray, args::Vararg{Union{Base.AbstractBroadcasted, AbstractArray}})
     data = map(f, getdata(x), map(getdata, args)...)
-    return ComponentArray(data, getaxes(x))
+    # return ComponentArray(data, getaxes(x))
+    return data
 end
 
 # We need all of these to avoid method ambiguities

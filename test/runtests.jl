@@ -32,14 +32,15 @@ ca_composed = ComponentArray(a = 1, b = ca)
 ca2 = ComponentArray(nt2)
 
 cmat = ComponentArray(a .* a', ax, ax)
-cmat2 = ca2 .* ca2'
+cmat2 = ComponentArray(ca2 .* ca2', only(getaxes(ca2)), only(getaxes(ca2)))
 
 caa = ComponentArray(a = ca, b = sq_mat)
 
 _a, _b, _c = Val.((:a, :b, :c))
 
 ca3 = ComponentArray(a=1, b=[2, 3, 4, 5], c=reshape(6:11, 3, 2))
-cmat3 = ca3 .* ca3'
+# cmat3 = ca3 .* ca3'
+cmat3 = ComponentMatrix(ca3 .* ca3', only(getaxes(ca3)), only(getaxes(ca3)))
 cmat3check = (1:11) .* (1:11)'
 
 ## Tests
@@ -256,10 +257,12 @@ end
     A = ComponentArray(rand(4, 10), Axis(a = 1:2, b = 3:4), FlatAxis())
     A_vec = A[:, 1]
     A_mat = A[:, 1:2]
-    @test A_vec isa ComponentVector
-    @test A_mat isa ComponentMatrix
-    @test getdata(A_vec) isa Vector
-    @test getdata(A_mat) isa Matrix
+    # @test A_vec isa ComponentVector
+    # @test A_mat isa ComponentMatrix
+    # @test getdata(A_vec) isa Vector
+    # @test getdata(A_mat) isa Matrix
+    @test A_vec isa Vector
+    @test A_mat isa Matrix
 
     # Issue #70
     let
@@ -304,8 +307,10 @@ end
 end
 
 @testset "Set" begin
-    temp = deepcopy(ca2)
-    tempmat = deepcopy(cmat2)
+    # temp = deepcopy(ca2)
+    temp = ComponentArray(deepcopy(ca2), getaxes(ca2))
+    # tempmat = deepcopy(cmat2)
+    tempmat = ComponentArray(deepcopy(cmat2), getaxes(cmat2))
 
     temp.c.a .= 1000
 
