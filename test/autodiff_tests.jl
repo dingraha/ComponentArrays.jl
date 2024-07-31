@@ -11,9 +11,22 @@ F_prop(ca) = F(ca.a, ca.x)
 
 ca = ComponentArray(a=[2, 3], x=2.0)
 truth = ComponentArray(a = [32, 48], x = 156)
+# truth = getdata(ComponentArray(a = [32, 48], x = 156))
 
 @testset "$(nameof(F_))" for F_ in (F_idx_val, F_idx_sym, F_view_val, F_view_sym, F_prop)
-    finite = FiniteDiff.finite_difference_gradient(F_, ca)
+    # finite = FiniteDiff.finite_difference_gradient(F_, ca)
+    # finite = FiniteDiff.finite_difference_gradient(F_, ca,
+    #     Val(:central), eltype(ca), Val(true),
+    #     F_(ca),
+    #     ComponentArray(copy(ca), getaxes(ca)),
+    #     ComponentArray(copy(ca), getaxes(ca)))
+    gradcache = FiniteDiff.GradientCache(
+        F_(ca),
+        ComponentArray(copy(ca), getaxes(ca)),
+        ComponentArray(copy(ca), getaxes(ca)),
+        ComponentArray(copy(ca), getaxes(ca)))
+    @show gradcache typeof(gradcache)
+    finite = FiniteDiff.finite_difference_gradient(F_, ca, gradcache)
     @test finite ≈ truth
 
     forward = ForwardDiff.gradient(F_, ca)

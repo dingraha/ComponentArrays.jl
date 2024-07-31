@@ -44,5 +44,5 @@ function Base.show(io::IO, mime::MIME"text/plain", a::LazyArray)
     return print(replace(rep, r"(\d+-element )?((Vector|Array){(.+)?})" => s"\1LazyArray{\4}"; count=1))
 end
 
-Base.copy(a::LazyArray) = collect(a)
-Base.deepcopy(a::LazyArray) = copy(a)
+# Base.copy(a::LazyArray) = collect(a)
+# Base.deepcopy(a::LazyArray) = copy(a)
