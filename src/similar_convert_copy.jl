@@ -3,10 +3,10 @@ const AnyCombinedAnyDims = Tuple{<:CombinedOrRegularAxis, <:CombinedAxis, Vararg
 const CombinedCombinedAnyDims = Tuple{<:CombinedAxis, <:CombinedAxis, Vararg{CombinedOrRegularAxis}}
 
 # Similar
-# Base.similar(x::ComponentArray) = ComponentArray(similar(getdata(x)), getaxes(x)...)
-Base.similar(x::ComponentArray) = similar(getdata(x))
-# Base.similar(x::ComponentArray, ::Type{T}) where {T} = ComponentArray(similar(getdata(x), T), getaxes(x)...)
-Base.similar(x::ComponentArray, ::Type{T}) where {T} = similar(getdata(x), T)
+Base.similar(x::ComponentArray) = ComponentArray(similar(getdata(x)), getaxes(x)...)
+# Base.similar(x::ComponentArray) = similar(getdata(x))
+Base.similar(x::ComponentArray, ::Type{T}) where {T} = ComponentArray(similar(getdata(x), T), getaxes(x)...)
+# Base.similar(x::ComponentArray, ::Type{T}) where {T} = similar(getdata(x), T)
 Base.similar(x::ComponentArray, dims::Vararg{Int}) = similar(getdata(x), dims...)
 Base.similar(x::ComponentArray, ::Type{T}, dims::Vararg{Int}) where {T} = similar(getdata(x), T, dims...)
 Base.similar(x::AbstractArray, dims::CombinedAnyDims) = _similar(x, dims)
@@ -19,16 +19,16 @@ Base.similar(x::Type{<:AbstractArray}, dims::CombinedAnyDims) = _similar(x, dims
 Base.similar(x::Type{<:AbstractArray}, dims::AnyCombinedAnyDims) = _similar(x, dims)
 Base.similar(x::Type{<:AbstractArray}, dims::CombinedCombinedAnyDims) = _similar(x, dims)
 
-# _similar(x::AbstractArray, dims) = ComponentArray(similar(getdata(x), length.(_array_axis.(dims))), _component_axis.(dims)...)
-_similar(x::AbstractArray, dims) = similar(getdata(x), length.(_array_axis.(dims)))
-# _similar(x::Type, dims) = ComponentArray(similar(x, length.(_array_axis.(dims))), _component_axis.(dims)...)
-_similar(x::Type, dims) = similar(x, length.(_array_axis.(dims)))
-# _similar(x, T, dims) = ComponentArray(similar(getdata(x), T, length.(_array_axis.(dims))), _component_axis.(dims)...)
-_similar(x, T, dims) = similar(getdata(x), T, length.(_array_axis.(dims)))
+_similar(x::AbstractArray, dims) = ComponentArray(similar(getdata(x), length.(_array_axis.(dims))), _component_axis.(dims)...)
+# _similar(x::AbstractArray, dims) = similar(getdata(x), length.(_array_axis.(dims)))
+_similar(x::Type, dims) = ComponentArray(similar(x, length.(_array_axis.(dims))), _component_axis.(dims)...)
+# _similar(x::Type, dims) = similar(x, length.(_array_axis.(dims)))
+_similar(x, T, dims) = ComponentArray(similar(getdata(x), T, length.(_array_axis.(dims))), _component_axis.(dims)...)
+# _similar(x, T, dims) = similar(getdata(x), T, length.(_array_axis.(dims)))
 
 
-# Base.zero(x::ComponentArray) = ComponentArray(zero(getdata(x)), getaxes(x)...)
-Base.zero(x::ComponentArray) = zero(getdata(x))
+Base.zero(x::ComponentArray) = ComponentArray(zero(getdata(x)), getaxes(x)...)
+# Base.zero(x::ComponentArray) = zero(getdata(x))
 
 ## FIXME: waiting on similar(::Type{<:ComponentArray})
 # Base.zeros(CA::Type{<:ComponentArray}) = (similar(CA) .= 0)
@@ -37,8 +37,8 @@ Base.zero(x::ComponentArray) = zero(getdata(x))
 
 
 # Copy
-# Base.copy(x::ComponentArray) = ComponentArray(copy(getdata(x)), getaxes(x))
-Base.copy(x::ComponentArray) = copy(getdata(x))
+Base.copy(x::ComponentArray) = ComponentArray(copy(getdata(x)), getaxes(x))
+# Base.copy(x::ComponentArray) = copy(getdata(x))
 
 Base.copyto!(dest::AbstractArray, src::ComponentArray) = copyto!(dest, getdata(src))
 function Base.copyto!(dest::ComponentArray, src::AbstractArray)
@@ -50,8 +50,8 @@ function Base.copyto!(dest::ComponentArray, src::ComponentArray)
     return dest
 end
 
-# Base.deepcopy(x::ComponentArray) = ComponentArray(deepcopy(getdata(x)), getaxes(x))
-Base.deepcopy(x::ComponentArray) = deepcopy(getdata(x))
+Base.deepcopy(x::ComponentArray) = ComponentArray(deepcopy(getdata(x)), getaxes(x))
+# Base.deepcopy(x::ComponentArray) = deepcopy(getdata(x))
 
 
 function Base.convert(::Type{ComponentArray{T,N,AA,Ax}}, A::AbstractArray) where {T,N,AA,Ax}

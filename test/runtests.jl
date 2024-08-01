@@ -399,12 +399,12 @@ end
 end
 
 @testset "Similar" begin
-    # @test similar(ca) isa typeof(ca)
-    @test similar(ca) isa typeof(getdata(ca))
-    # @test similar(ca2) isa typeof(ca2)
-    @test similar(ca2) isa typeof(getdata(ca2))
-    # @test similar(ca, Float32) isa typeof(ca_Float32)
-    @test similar(ca, Float32) isa typeof(getdata(ca_Float32))
+    @test similar(ca) isa typeof(ca)
+    # @test similar(ca) isa typeof(getdata(ca))
+    @test similar(ca2) isa typeof(ca2)
+    # @test similar(ca2) isa typeof(getdata(ca2))
+    @test similar(ca, Float32) isa typeof(ca_Float32)
+    # @test similar(ca, Float32) isa typeof(getdata(ca_Float32))
     @test eltype(similar(ca, ForwardDiff.Dual)) == ForwardDiff.Dual
     @test similar(ca, 5) isa typeof(getdata(ca))
     @test similar(ca, Float32, 5) isa typeof(getdata(ca_Float32))
@@ -412,13 +412,15 @@ end
 
     # Issue #206
     x = ComponentArray(a = false, b = true)
-    # @test typeof(x) == typeof(zero(x))
-    @test typeof(getdata(x)) == typeof(zero(x))
+    @test typeof(x) == typeof(zero(x))
+    # @test typeof(getdata(x)) == typeof(zero(x))
 end
 
 @testset "Copy" begin
-    @test copy(ca) == getdata(ca)
-    @test deepcopy(ca) == getdata(ca)
+    @test copy(ca) == ca
+    # @test copy(ca) == getdata(ca)
+    @test deepcopy(ca) == ca
+    # @test deepcopy(ca) == getdata(ca)
 end
 
 @testset "Convert" begin
@@ -436,28 +438,29 @@ end
     temp = deepcopy(ca)
     @test eltype(Float32.(ca)) == Float32
     @test ca .* ca' == cmat
-    # @test 1 .* (ca .+ ca) == ComponentArray(a .+ a, getaxes(ca))
-    @test 1 .* (ca .+ ca) == a .+ a
-    # @test typeof(ca .+ cmat) == typeof(cmat)
-    @test typeof(ca .+ cmat) == typeof(getdata(cmat))
-    # @test getaxes(false .* ca .* ca') == (ax, ax)
-    # @test getaxes(false .* ca' .* ca) == (ax, ax)
-    # @test (vec(temp) .= vec(ca_Float32)) isa ComponentArray
-    @test (vec(temp) .= vec(ca_Float32)) isa Vector
+    @test 1 .* (ca .+ ca) == ComponentArray(a .+ a, getaxes(ca))
+    # @test 1 .* (ca .+ ca) == a .+ a
+    @test typeof(ca .+ cmat) == typeof(cmat)
+    # @test typeof(ca .+ cmat) == typeof(getdata(cmat))
+    @test getaxes(false .* ca .* ca') == (ax, ax)
+    @test getaxes(false .* ca' .* ca) == (ax, ax)
+    @test (vec(temp) .= vec(ca_Float32)) isa ComponentArray
+    # @test (vec(temp) .= vec(ca_Float32)) isa Vector
 
     @test_broken getdata(ca_MVector .* ca_MVector) isa MArray
     @test_broken typeof(ca .* ca_MVector) == typeof(ca)
     @test_broken typeof(ca_SVector .* ca) == typeof(ca)
     @test_broken typeof(ca_SVector .* ca_SVector) == typeof(ca_SVector)
     @test_broken typeof(ca_SVector .* ca_MVector) == typeof(ca_SVector)
-    @test_broken typeof(ca_SVector' .+ ca) == typeof(cmat)
+    # @test_broken typeof(ca_SVector' .+ ca) == typeof(cmat)
+    @test typeof(ca_SVector' .+ ca) == typeof(cmat)
     @test_broken getdata(ca_SVector' .+ ca_SVector') isa StaticArrays.StaticArray
     @test_broken getdata(ca_SVector .* ca_SVector') isa StaticArrays.StaticArray
     @test_broken ca_SVector .* ca .+ a .- 1 isa ComponentArray
 
     # Issue #31 (with Complex as a stand-in for Dual)
-    # @test reshape(Complex.(ca, Float32.(a)), size(ca)) isa ComponentArray{Complex{Float64}}
-    @test reshape(Complex.(ca, Float32.(a)), size(ca)) isa Array{Complex{Float64}}
+    @test reshape(Complex.(ca, Float32.(a)), size(ca)) isa ComponentArray{Complex{Float64}}
+    # @test reshape(Complex.(ca, Float32.(a)), size(ca)) isa Array{Complex{Float64}}
 
     # Issue #34 : Different Axis types
     x1 = ComponentArray(a = [1.1, 2.1], b = [0.1])
@@ -469,20 +472,20 @@ end
     @test x1 + x3 isa Vector
     @test x2 + x3 isa Vector
     @test x1 .* x2 isa Vector
-    # @test xmat + x1mat isa ComponentArray
-    @test xmat + x1mat isa Array
-    # @test xmat isa ComponentArray
-    @test xmat isa Array
-    # @test getaxes(xmat) == (getaxes(x1)[1], getaxes(x2)[1])
-    # @test getaxes(x1mat + xmat) == (getaxes(x1)[1], FlatAxis())
-    # @test getaxes(x1mat + xmat') == (FlatAxis(), getaxes(x1)[1])
+    @test xmat + x1mat isa ComponentArray
+    # @test xmat + x1mat isa Array
+    @test xmat isa ComponentArray
+    # @test xmat isa Array
+    @test getaxes(xmat) == (getaxes(x1)[1], getaxes(x2)[1])
+    @test getaxes(x1mat + xmat) == (getaxes(x1)[1], FlatAxis())
+    @test getaxes(x1mat + xmat') == (FlatAxis(), getaxes(x1)[1])
 
-    # @test map(sqrt, ca) isa ComponentArray
-    @test map(sqrt, ca) isa Array
-    # @test map(+, ca, sqrt.(ca)) isa ComponentArray
-    @test map(+, ca, sqrt.(ca)) isa Array
-    # @test map(+, sqrt.(ca), Float32.(ca), ca) isa ComponentArray
-    @test map(+, sqrt.(ca), Float32.(ca), ca) isa Array
+    @test map(sqrt, ca) isa ComponentArray
+    # @test map(sqrt, ca) isa Array
+    @test map(+, ca, sqrt.(ca)) isa ComponentArray
+    # @test map(+, ca, sqrt.(ca)) isa Array
+    @test map(+, sqrt.(ca), Float32.(ca), ca) isa ComponentArray
+    # @test map(+, sqrt.(ca), Float32.(ca), ca) isa Array
     @test map(+, ca, getdata(ca)) isa Array
     @test map(+, ca, ComponentArray(v = getdata(ca))) isa Array
 
@@ -491,8 +494,8 @@ end
 
     # Issue #60
     x4 = ComponentArray(rand(3, 3), Axis(x = 1, y = 2, z = 3), Axis(x = 1, y = 2, z = 3))
-    # @test x4 + I(3) isa ComponentMatrix
-    @test x4 + I(3) isa Matrix
+    @test x4 + I(3) isa ComponentMatrix
+    # @test x4 + I(3) isa Matrix
 
     # Issue #98
     let
@@ -505,10 +508,10 @@ end
         @test getdata(yz) * x == [14, 28, 42]
         @test x .+ y .+ z isa Vector
         @test Complex.(x, y) isa Vector
-        # @test Complex.(x, x) isa ComponentVector
-        # @test Complex.(x, y') isa ComponentMatrix
-        @test Complex.(x, x) isa Vector
-        @test Complex.(x, y') isa Matrix
+        @test Complex.(x, x) isa ComponentVector
+        @test Complex.(x, y') isa ComponentMatrix
+        # @test Complex.(x, x) isa Vector
+        # @test Complex.(x, y') isa Matrix
     end
 end
 
@@ -525,18 +528,18 @@ end
     @test cmat'' == cmat
     @test ca'' == ca
     @test ca.c' * cmat[:c, :c] * ca.c isa Number
-    # @test ca * 1 isa ComponentVector
-    @test ca * 1 isa Vector
+    @test ca * 1 isa ComponentVector
+    # @test ca * 1 isa Vector
     @test size(ca' * 1) == size(ca')
     @test a' * ca isa Number
     @test a_t * ca isa AbstractArray
     @test a' * cmat isa Adjoint
     @test a_t * cmat isa AbstractArray
     @test cmat * ca isa AbstractVector
-    # @test ca + ca + ca isa typeof(ca)
-    @test ca + ca + ca isa typeof(getdata(ca))
-    # @test a + ca + ca isa typeof(ca)
-    @test a + ca + ca isa typeof(getdata(ca))
+    @test ca + ca + ca isa typeof(ca)
+    # @test ca + ca + ca isa typeof(getdata(ca))
+    @test a + ca + ca isa typeof(ca)
+    # @test a + ca + ca isa typeof(getdata(ca))
     @test a * ca' isa AbstractMatrix
 
     @test ca * transpose(ca) == collect(cmat)
@@ -553,19 +556,19 @@ end
 
     temp = deepcopy(ca)
     temp .= (cmat + I) \ ca
-    # @test temp isa ComponentArray
-    @test temp isa Array
+    @test temp isa ComponentArray
+    # @test temp isa Array
     @test (ca' / (cmat' + I))' == (cmat + I) \ ca
     @test cmat * ((cmat + I) \ ca) isa AbstractArray
     @test inv(cmat + I) isa AbstractArray
 
     tempmat = deepcopy(cmat)
 
-    # @test ldiv!(temp, lu(cmat + I), ca) isa ComponentVector
-    @test ldiv!(temp, lu(cmat + I), ca) isa Vector
+    @test ldiv!(temp, lu(cmat + I), ca) isa ComponentVector
+    # @test ldiv!(temp, lu(cmat + I), ca) isa Vector
     @test ldiv!(getdata(temp), lu(cmat + I), ca) isa AbstractVector
-    # @test ldiv!(tempmat, lu(cmat + I), cmat) isa ComponentMatrix
-    @test ldiv!(tempmat, lu(cmat + I), cmat) isa Matrix
+    @test ldiv!(tempmat, lu(cmat + I), cmat) isa ComponentMatrix
+    # @test ldiv!(tempmat, lu(cmat + I), cmat) isa Matrix
     @test ldiv!(getdata(tempmat), lu(cmat + I), cmat) isa AbstractMatrix
 
     # vca2 = vcat(ca2', ca2')

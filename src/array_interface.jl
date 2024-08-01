@@ -77,7 +77,11 @@ Base.vcat(x::ComponentVector{<:Number}, args::Vararg{AbstractVector{T}, N}) wher
 #     rows = [reduce(hcat, xs[idx]) for idx in idxs]
 #     return vcat(rows...)
 # end
-Base.hvcat(row_lengths::NTuple{N,Int}, xs::Vararg{ComponentVecOrMat}) where {N} = hvcat(row_lengths, getdata.(xs))
+Base.hvcat(row_lengths::NTuple{N,Int}, xs::Vararg{ComponentVecOrMat}) where {N} = hvcat(row_lengths, getdata.(xs)...)
+# function Base.hvcat(row_lengths::NTuple{N,Int}, xs::Vararg{ComponentVecOrMat}) where {N} 
+#     @show row_lengths
+#     return hvcat(row_lengths, getdata.(xs)...)
+# end
 
 # function Base.permutedims(x::ComponentArray, dims)
 #     axs = getaxes(x)
